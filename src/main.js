@@ -1,4 +1,10 @@
 import { createApp } from 'vue'
 import App from './App.vue'
+import { SUPABASE } from './services/supabase'
 
-createApp(App).mount('#app')
+const APP = createApp(App)
+
+// Make Supabase available in all components
+APP.config.globalProperties.$supabase = SUPABASE
+
+APP.mount('#app')
