@@ -28,8 +28,10 @@ const ROUTES = [
   }
 ]
 
+const BASE_URL = '/'
+
 const ROUTER = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory(BASE_URL),
   routes: ROUTES
 })
 
