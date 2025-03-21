@@ -69,6 +69,13 @@
           {{ ERROR_MESSAGE }}
         </div>
       </div>
+      
+      <div class="THEME_TOGGLE">
+        <button @click="toggleTheme" class="THEME_BUTTON">
+          <span v-if="IS_DARK_MODE">☀️</span>
+          <span v-else>🌙</span>
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -111,6 +118,9 @@ export default {
         this.SIGNUP_FORM.PASSWORD.trim() !== '' &&
         this.SIGNUP_FORM.PASSWORD === this.SIGNUP_FORM.CONFIRM_PASSWORD
       )
+    },
+    IS_DARK_MODE() {
+      return this.$root.isDarkMode ? this.$root.isDarkMode() : false
     }
   },
   methods: {
@@ -151,6 +161,11 @@ export default {
       } finally {
         this.IS_LOADING = false
       }
+    },
+    toggleTheme() {
+      if (this.$root.toggleDarkMode) {
+        this.$root.toggleDarkMode()
+      }
     }
   }
 }
@@ -162,17 +177,18 @@ export default {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  background: var(--gradient-bg);
   padding: 20px;
 }
 
 .SIGNUP_CARD {
-  background-color: white;
+  background-color: var(--card-bg);
   border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--card-shadow);
   width: 100%;
   max-width: 450px;
   padding: 40px;
+  position: relative;
 }
 
 .SIGNUP_HEADER {
@@ -183,12 +199,12 @@ export default {
 .SIGNUP_HEADER h1 {
   font-size: 28px;
   font-weight: 700;
-  color: #1e3c72;
+  color: var(--accent-primary);
   margin-bottom: 10px;
 }
 
 .SIGNUP_HEADER p {
-  color: #6b7280;
+  color: var(--text-secondary);
   font-size: 16px;
 }
 
@@ -200,73 +216,74 @@ export default {
   display: block;
   margin-bottom: 8px;
   font-weight: 500;
-  color: #374151;
+  color: var(--text-primary);
 }
 
 .FORM_GROUP input {
   width: 100%;
   padding: 12px 16px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--input-border);
   border-radius: 6px;
   font-size: 16px;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  background-color: var(--input-bg);
+  color: var(--text-primary);
 }
 
 .FORM_GROUP input:focus {
-  border-color: #2a5298;
+  border-color: var(--accent-primary);
   outline: none;
-  box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.1);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .FORM_ACTIONS {
   margin-top: 30px;
 }
 
-.PRIMARY_BUTTON {
-  width: 100%;
-  background-color: #1e3c72;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  padding: 14px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.PRIMARY_BUTTON:hover {
-  background-color: #2a5298;
-}
-
-.PRIMARY_BUTTON:disabled {
-  background-color: #9ca3af;
-  cursor: not-allowed;
-}
-
 .FORM_FOOTER {
   margin-top: 20px;
   text-align: center;
-  color: #6b7280;
+  color: var(--text-muted);
 }
 
 .FORM_FOOTER a {
-  color: #1e3c72;
+  color: var(--accent-primary);
   font-weight: 600;
   text-decoration: none;
 }
 
-.FORM_FOOTER a:hover {
-  text-decoration: underline;
+.ERROR_MESSAGE {
+  color: var(--error-color);
+  margin-top: 16px;
+  padding: 12px;
+  background-color: rgba(239, 68, 68, 0.1);
+  border-radius: 6px;
+  font-size: 14px;
 }
 
-.ERROR_MESSAGE {
-  margin-top: 20px;
-  padding: 12px;
-  background-color: #fee2e2;
-  border: 1px solid #fecaca;
-  border-radius: 6px;
-  color: #b91c1c;
-  font-size: 14px;
+.THEME_TOGGLE {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+}
+
+.THEME_BUTTON {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background-color: var(--bg-secondary);
+  transition: background-color 0.2s;
+}
+
+.THEME_BUTTON:hover {
+  background-color: var(--border-color);
 }
 </style>
