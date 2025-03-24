@@ -25,6 +25,18 @@ const ROUTES = [
     name: 'DASHBOARD',
     component: () => import('../views/DashboardPage.vue'),
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/profile',
+    name: 'SETTINGS',
+    component: () => import('../views/ProfilePage.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/group/:id',
+    name: 'GROUP',
+    component: () => import('../views/GroupPage.vue'),
+    meta: { requiresAuth: true }
   }
 ]
 

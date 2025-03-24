@@ -4,12 +4,58 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
-    <link rel="icon" href="<%= BASE_URL %>favicon.ico">
-    <title><%= htmlWebpackPlugin.options.title %></title>
+    <link rel="icon" href="<logo.png">
+    <title>Bimba Bolao</title>
+    <style>
+      :root {
+        --bg-primary: #121212;
+        --bg-secondary: #1e1e1e;
+        --card-bg: #1e1e1e;
+        --text-primary: #ffffff;
+        --text-secondary: #b0b0b0;
+        --accent-primary: #3b82f6;
+        --accent-secondary: #1e40af;
+        --input-bg: rgba(255, 255, 255, 0.05);
+        --input-border: rgba(255, 255, 255, 0.1);
+        --button-hover-bg: #1e40af;
+        --card-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+        --error-color: #ef4444;
+        --success-color: #22c55e;
+        --pattern-overlay: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+        --title-gradient: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+      }
+
+      body.light-mode {
+        --bg-primary: #f8f9fa;
+        --bg-secondary: #e9ecef;
+        --card-bg: #ffffff;
+        --text-primary: #212529;
+        --text-secondary: #6c757d;
+        --accent-primary: #3b82f6;
+        --accent-secondary: #1e40af;
+        --input-bg: #f8f9fa;
+        --input-border: #dee2e6;
+        --button-hover-bg: #1e40af;
+        --card-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+        --error-color: #ef4444;
+        --success-color: #22c55e;
+        --pattern-overlay: radial-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+        --title-gradient: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+      }
+
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+        background-color: var(--bg-primary);
+        color: var(--text-primary);
+        transition: background-color 0.3s, color 0.3s;
+      }
+    </style>
   </head>
   <body>
     <noscript>
-      <strong>We're sorry but <%= htmlWebpackPlugin.options.title %> doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
+      <strong>We're sorry but Bimba Bolao doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
     </noscript>
     <div id="app"></div>
     <!-- built files will be auto injected -->
