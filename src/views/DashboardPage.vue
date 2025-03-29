@@ -427,6 +427,7 @@ export default {
           const newGroupId = checkGroups[0].ID
           
           // Add the creator as a member
+          // eslint-disable-next-line no-unused-vars
           const { data: memberData, error: memberError } = await this.$supabase
             .from('GROUP_MEMBERS')
             .insert({
@@ -453,6 +454,7 @@ export default {
         console.log('Group created with ID:', newGroupId)
         
         // Add the creator as a member
+        // eslint-disable-next-line no-unused-vars
         const { data: memberData, error: memberError } = await this.$supabase
           .from('GROUP_MEMBERS')
           .insert({
@@ -475,6 +477,7 @@ export default {
         const inviteCode = this.generateInviteCode()
         console.log('Generated invite code:', inviteCode)
         
+        // eslint-disable-next-line no-unused-vars
         const { data: inviteData, error: inviteError } = await this.$supabase
           .from('GROUP_INVITES')
           .insert({

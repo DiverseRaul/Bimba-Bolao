@@ -45,6 +45,7 @@ const testSupabaseConnection = async () => {
     console.log('Authentication successful, user ID:', authData.session.user.id)
     
     // Test database access with a simple query
+    // eslint-disable-next-line no-unused-vars
     const { data: testData, error: testError } = await SUPABASE
       .from('GROUPS')
       .select('count(*)')
