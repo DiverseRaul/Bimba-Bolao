@@ -66,11 +66,29 @@ CREATE OR REPLACE FUNCTION create_group_with_member(
   group_name TEXT,
   group_description TEXT,
   user_id UUID
-) RETURNS UUID AS $$
+) RETURNS JSON AS $$
 DECLARE
   new_group_id UUID;
   invite_code TEXT;
+  result_json JSON;
 BEGIN
+  -- Validate inputs
+  IF group_name IS NULL OR LENGTH(TRIM(group_name)) = 0 THEN
+    RETURN json_build_object(
+      'success', false,
+      'error', 'Group name cannot be empty',
+      'code', 'VALIDATION_ERROR'
+    );
+  END IF;
+  
+  IF user_id IS NULL THEN
+    RETURN json_build_object(
+      'success', false,
+      'error', 'User ID cannot be null',
+      'code', 'VALIDATION_ERROR'
+    );
+  END IF;
+  
   -- Generate invite code
   SELECT array_to_string(array(
     SELECT substr('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', ((random() * 36)::integer + 1)::integer, 1)
@@ -90,7 +108,34 @@ BEGIN
   INSERT INTO GROUP_INVITES (GROUP_ID, CODE, CREATED_BY, EXPIRES_AT)
   VALUES (new_group_id, invite_code, user_id, now() + interval '30 days');
   
-  RETURN new_group_id;
+  -- Create a JSON response with all relevant data
+  SELECT json_build_object(
+    'success', true,
+    'group_id', new_group_id,
+    'invite_code', invite_code,
+    'message', 'Group created successfully'
+  ) INTO result_json;
+  
+  RETURN result_json;
+EXCEPTION
+  WHEN unique_violation THEN
+    RETURN json_build_object(
+      'success', false,
+      'error', 'A group with this name already exists or you are already a member',
+      'code', 'UNIQUE_VIOLATION'
+    );
+  WHEN foreign_key_violation THEN
+    RETURN json_build_object(
+      'success', false,
+      'error', 'Invalid user ID or group ID',
+      'code', 'FOREIGN_KEY_VIOLATION'
+    );
+  WHEN OTHERS THEN
+    RETURN json_build_object(
+      'success', false,
+      'error', SQLERRM,
+      'code', SQLSTATE
+    );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 

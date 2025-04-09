@@ -1,91 +1,71 @@
 <template>
   <div class="SETTINGS_CONTAINER">
-    <header class="SETTINGS_HEADER">
-      <div class="HEADER_LOGO">
-        <img src="../assets/logo.png" alt="Bimba Bolao" class="LOGO_IMAGE" />
-        <h1>Bimba Bolao</h1>
-      </div>
-      <div class="HEADER_ACTIONS">
-        <button class="NAV_BUTTON" @click="navigateToDashboard">
-          {{ CURRENT_LANGUAGE.DASHBOARD }}
-        </button>
-      </div>
-    </header>
+    <page-loader :isVisible="PAGE_LOADING" />
+    <app-header :USER="USER" currentPage="profile" />
     
     <main class="SETTINGS_CONTENT">
       <div class="SETTINGS_CARD">
-        <h2>{{ CURRENT_LANGUAGE.SETTINGS_TITLE }}</h2>
+        <h2>Settings</h2>
         
         <div class="SETTINGS_FORM">
           <div class="SETTINGS_SECTION">
-            <h3>{{ CURRENT_LANGUAGE.APPEARANCE }}</h3>
+            <h3>Appearance</h3>
             <div class="FORM_GROUP">
-              <label for="theme">{{ CURRENT_LANGUAGE.THEME }}</label>
+              <label for="theme">Theme</label>
               <div class="THEME_TOGGLE">
                 <button 
                   class="THEME_BUTTON" 
                   :class="{ 'ACTIVE': IS_DARK_MODE }"
                   @click="setDarkMode(true)"
                 >
-                  {{ CURRENT_LANGUAGE.DARK }}
+                  Dark
                 </button>
                 <button 
                   class="THEME_BUTTON" 
                   :class="{ 'ACTIVE': !IS_DARK_MODE }"
                   @click="setDarkMode(false)"
                 >
-                  {{ CURRENT_LANGUAGE.LIGHT }}
+                  Light
                 </button>
               </div>
             </div>
           </div>
           
-          <div class="SETTINGS_SECTION">
-            <h3>{{ CURRENT_LANGUAGE.LANGUAGE_SETTINGS }}</h3>
+          <div class="SETTINGS_SECTION PROFILE_SECTION">
+            <h3>Profile</h3>
             <div class="FORM_GROUP">
-              <label for="language">{{ CURRENT_LANGUAGE.LANGUAGE }}</label>
-              <select 
-                id="language" 
-                v-model="SELECTED_LANGUAGE" 
-                class="FORM_INPUT"
-                @change="changeLanguage"
-              >
-                <option value="en">English</option>
-                <option value="pt">Português</option>
-                <option value="es">Español</option>
-              </select>
+              <label for="username">Username</label>
+              <div class="INPUT_GROUP">
+                <input 
+                  type="text" 
+                  id="username" 
+                  v-model="USERNAME" 
+                  class="FORM_INPUT"
+                />
+                <button 
+                  class="PRIMARY_BUTTON" 
+                  @click="updateUsername"
+                  :disabled="IS_UPDATING"
+                >
+                  {{ IS_UPDATING ? 'Updating...' : 'Update Username' }}
+                </button>
+              </div>
+            </div>
+            <div v-if="SUCCESS_MESSAGE" class="SUCCESS_MESSAGE">
+              {{ SUCCESS_MESSAGE }}
+            </div>
+            <div v-if="ERROR_MESSAGE" class="ERROR_MESSAGE">
+              {{ ERROR_MESSAGE }}
             </div>
           </div>
           
           <div class="SETTINGS_SECTION">
-            <h3>{{ CURRENT_LANGUAGE.ACCOUNT }}</h3>
-            <div class="FORM_GROUP">
-              <label for="username">{{ CURRENT_LANGUAGE.USERNAME }}</label>
-              <input 
-                type="text" 
-                id="username" 
-                v-model="USERNAME" 
-                class="FORM_INPUT"
-              />
-            </div>
-            <div class="FORM_ACTIONS">
-              <button 
-                class="PRIMARY_BUTTON" 
-                @click="updateUsername"
-                :disabled="IS_UPDATING"
-              >
-                {{ IS_UPDATING ? CURRENT_LANGUAGE.UPDATING : CURRENT_LANGUAGE.UPDATE_USERNAME }}
-              </button>
-            </div>
+            <h3>Account</h3>
             <div class="LOGOUT_SECTION">
               <button class="LOGOUT_BUTTON" @click="LOGOUT">
-                {{ CURRENT_LANGUAGE.LOGOUT }}
+                Logout
               </button>
             </div>
-          </div>
-          
-          <div v-if="SUCCESS_MESSAGE" class="SUCCESS_MESSAGE">
-            {{ SUCCESS_MESSAGE }}
           </div>
         </div>
       </div>
@@ -94,125 +74,117 @@
 </template>
 
 <script>
+import AppHeader from '@/components/AppHeader.vue';
+import PageLoader from '@/components/PageLoader.vue';
+
 export default {
   name: 'SettingsPage',
+  components: {
+    AppHeader,
+    PageLoader
+  },
   data() {
     return {
-      IS_DARK_MODE: localStorage.getItem('theme') === 'dark',
-      SELECTED_LANGUAGE: localStorage.getItem('language') || 'en',
+      IS_DARK_MODE: this.$root.isDarkMode ? this.$root.isDarkMode() : localStorage.getItem('DARK_MODE') !== 'false',
       USERNAME: '',
       IS_UPDATING: false,
       SUCCESS_MESSAGE: '',
       ERROR_MESSAGE: '',
-      CURRENT_LANGUAGE: {
-        SETTINGS_TITLE: 'Settings',
-        APPEARANCE: 'Appearance',
-        THEME: 'Theme',
-        DARK: 'Dark',
-        LIGHT: 'Light',
-        LANGUAGE_SETTINGS: 'Language',
-        LANGUAGE: 'Select Language',
-        ACCOUNT: 'Account',
-        USERNAME: 'Username',
-        UPDATE_USERNAME: 'Update Username',
-        UPDATING: 'Updating...',
-        DASHBOARD: 'Dashboard',
-        LOGOUT: 'Logout',
-        SETTINGS_UPDATED: 'Settings updated successfully!',
-        USERNAME_UPDATED: 'Username updated successfully!'
-      }
+      PAGE_LOADING: true,
+      USER: null
     }
   },
   mounted() {
+    this.IS_DARK_MODE = this.$root.isDarkMode ? this.$root.isDarkMode() : localStorage.getItem('DARK_MODE') !== 'false'
     this.loadUserData()
-    this.applyTheme()
+    // Set a default USER object to ensure header buttons are visible immediately
+    this.USER = { id: 'loading' }
+    setTimeout(() => {
+      this.PAGE_LOADING = false
+    }, 1000)
   },
   methods: {
-    applyTheme() {
-      if (this.IS_DARK_MODE) {
-        document.body.classList.add('dark-mode')
-        document.body.classList.remove('light-mode')
-      } else {
-        document.body.classList.remove('dark-mode')
-        document.body.classList.add('light-mode')
+    setDarkMode(isDark) {
+      const CURRENT_MODE = this.$root.isDarkMode ? this.$root.isDarkMode() : localStorage.getItem('DARK_MODE') !== 'false'
+      if (isDark !== CURRENT_MODE) {
+        if (this.$root.toggleDarkMode) {
+          this.$root.toggleDarkMode()
+          this.IS_DARK_MODE = isDark
+        } else {
+          console.error('Dark mode toggle function not found on $root')
+          localStorage.setItem('DARK_MODE', isDark)
+          this.IS_DARK_MODE = isDark
+        }
       }
     },
-    setDarkMode(isDark) {
-      this.IS_DARK_MODE = isDark
-      localStorage.setItem('theme', isDark ? 'dark' : 'light')
-      this.applyTheme()
-      this.SUCCESS_MESSAGE = this.CURRENT_LANGUAGE.SETTINGS_UPDATED
-      
-      // Clear success message after 3 seconds
-      setTimeout(() => {
-        this.SUCCESS_MESSAGE = ''
-      }, 3000)
-    },
-    changeLanguage() {
-      // In a real app, this would update the i18n locale
-      localStorage.setItem('language', this.SELECTED_LANGUAGE)
-      this.SUCCESS_MESSAGE = this.CURRENT_LANGUAGE.SETTINGS_UPDATED
-      
-      // Clear success message after 3 seconds
-      setTimeout(() => {
-        this.SUCCESS_MESSAGE = ''
-      }, 3000)
-    },
     async loadUserData() {
+      this.ERROR_MESSAGE = ''; // Clear previous errors
       try {
-        // Get current user
-        const { data: { user } } = await this.$supabase.auth.getUser()
-        
-        if (!user) {
-          this.$router.push('/login')
-          return
+        const { data: { user }, error: userError } = await this.$supabase.auth.getUser();
+        console.log('User object:', user);
+        if (userError) {
+          console.error('Error fetching user:', userError);
+          throw new Error('Could not fetch authenticated user.');
         }
-        
-        // Get user profile from USERS table
-        const { data, error } = await this.$supabase
+        if (!user) {
+          console.log('No authenticated user found, redirecting to login.');
+          this.$router.push('/login');
+          return;
+        }
+
+        console.log('Fetching profile for user ID:', user.id);
+        const { data: profileData, error: profileError } = await this.$supabase
           .from('USERS')
           .select('DISPLAY_NAME')
           .eq('ID', user.id)
-          .single()
-        
-        if (!error && data) {
-          this.USERNAME = data.DISPLAY_NAME || ''
+          .single();
+
+        console.log('Profile fetch result:', { profileData, profileError });
+
+        if (profileError) {
+          console.error('Supabase profile fetch error:', profileError);
+          if (profileError.message.includes('security barrier')) {
+            throw new Error('Failed to load profile due to permission restrictions (RLS).');
+          } else {
+            throw profileError;
+          }
         }
+
+        if (profileData) {
+          this.USERNAME = profileData.DISPLAY_NAME || '';
+        }
+        // Set the USER object for the header
+        this.USER = user;
       } catch (error) {
-        console.error('Error loading user data:', error)
+        console.error('Error loading user data:', error);
       }
     },
     async updateUsername() {
-      if (!this.USERNAME.trim()) {
-        return
+      if (!this.USERNAME || !this.USERNAME.trim()) {
+        this.ERROR_MESSAGE = 'Username cannot be empty.';
+        return;
       }
-      
-      this.IS_UPDATING = true
-      this.SUCCESS_MESSAGE = ''
-      this.ERROR_MESSAGE = ''
-      
+      this.IS_UPDATING = true;
+      this.SUCCESS_MESSAGE = '';
+      this.ERROR_MESSAGE = '';
+
       try {
-        const { data: { user } } = await this.$supabase.auth.getUser()
-        
-        if (!user) {
-          this.$router.push('/login')
-          return
-        }
-        
+        const { data: { user } } = await this.$supabase.auth.getUser();
+        if (!user) throw new Error('User not authenticated');
+
         const { error } = await this.$supabase
           .from('USERS')
-          .update({
-            DISPLAY_NAME: this.USERNAME
-          })
-          .eq('ID', user.id)
-        
-        if (error) throw error
-        
-        this.SUCCESS_MESSAGE = this.CURRENT_LANGUAGE.USERNAME_UPDATED
+          .update({ DISPLAY_NAME: this.USERNAME.trim() })
+          .eq('ID', user.id);
+
+        if (error) throw error;
+
+        this.SUCCESS_MESSAGE = 'Username updated successfully!';
       } catch (error) {
-        console.error('Error updating username:', error)
+        console.error('Error updating username:', error);
+        this.ERROR_MESSAGE = `Error updating username: ${error.message || String(error)}`;
       } finally {
-        this.IS_UPDATING = false
+        this.IS_UPDATING = false;
       }
     },
     navigateToDashboard() {
@@ -230,68 +202,10 @@ export default {
 .SETTINGS_CONTAINER {
   min-height: 100vh;
   background-color: var(--bg-primary);
-  background-image: var(--pattern-overlay);
 }
 
 .SETTINGS_HEADER {
-  background: rgba(23, 23, 23, 0.8);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  color: white;
-  padding: 16px 24px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.HEADER_LOGO {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.LOGO_IMAGE {
-  width: 40px;
-  height: 40px;
-  object-fit: contain;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
-}
-
-.SETTINGS_HEADER h1 {
-  font-size: 24px;
-  font-weight: 700;
-  margin: 0;
-  letter-spacing: 0.5px;
-  background: var(--title-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.HEADER_ACTIONS {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.NAV_BUTTON {
-  background-color: transparent;
-  color: var(--text-primary);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  padding: 10px 18px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.NAV_BUTTON:hover {
-  background-color: rgba(255, 255, 255, 0.05);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  display: none; /* Hide the old header */
 }
 
 .SETTINGS_CONTENT {
@@ -448,6 +362,15 @@ export default {
   font-size: 14px;
 }
 
+.ERROR_MESSAGE {
+  margin-top: 16px;
+  padding: 12px;
+  background-color: rgba(239, 68, 68, 0.1);
+  border-radius: 6px;
+  color: var(--error-color);
+  font-size: 14px;
+}
+
 .PRIMARY_BUTTON {
   background-color: var(--accent-primary);
   color: white;
@@ -482,5 +405,23 @@ export default {
   justify-content: flex-end;
   margin-top: 16px;
   margin-bottom: 24px;
+}
+
+.PROFILE_SECTION .FORM_GROUP {
+  margin-bottom: 1rem;
+}
+
+.PROFILE_SECTION .INPUT_GROUP {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.PROFILE_SECTION .FORM_INPUT {
+  flex-grow: 1;
+}
+
+.PROFILE_SECTION .PRIMARY_BUTTON {
+  flex-shrink: 0;
 }
 </style>

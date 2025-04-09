@@ -1,283 +1,208 @@
 <template>
-  <div class="DASHBOARD_CONTAINER">
-    <header class="DASHBOARD_HEADER">
-      <div class="HEADER_LOGO">
-        <img src="../assets/logo.png" alt="Bimba Bolao" class="LOGO_IMAGE" />
-        <h1>Bimba Bolao</h1>
-      </div>
-      <div class="HEADER_ACTIONS">
-        <button class="PROFILE_BUTTON" @click="navigateToProfile">
-          {{ CURRENT_LANGUAGE.SETTINGS }}
-        </button>
-      </div>
-    </header>
-    
-    <main class="DASHBOARD_CONTENT">
-      <div class="DASHBOARD_WELCOME">
-        <h2>{{ CURRENT_LANGUAGE.WELCOME }}</h2>
-        <p>{{ CURRENT_LANGUAGE.DASHBOARD_MESSAGE }}</p>
-      </div>
-      
-      <!-- Match Templates Section -->
-      <div class="MATCHES_SECTION">
-        <h3>{{ CURRENT_LANGUAGE.UPCOMING_MATCHES }}</h3>
-        <div class="MATCHES_GRID">
-          <!-- Match Card 1 -->
-          <div class="MATCH_CARD">
-            <div class="MATCH_HEADER">
-              <span class="MATCH_TIME">{{ CURRENT_LANGUAGE.TODAY }} • 20:00</span>
-              <span class="MATCH_STATUS">{{ CURRENT_LANGUAGE.TIME_LEFT }}: 2h 30min</span>
-            </div>
-            <div class="MATCH_TEAMS">
-              <div class="TEAM">
-                <img src="https://via.placeholder.com/40" alt="Team 1" class="TEAM_LOGO" />
-                <span class="TEAM_NAME">Brazil</span>
-              </div>
-              <div class="MATCH_SCORE">
-                <div class="SCORE_CONTAINER">
-                  <input type="number" class="SCORE_INPUT" min="0" max="99" placeholder="0" />
-                  <span class="SCORE_SEPARATOR">:</span>
-                  <input type="number" class="SCORE_INPUT" min="0" max="99" placeholder="0" />
-                </div>
-                <button class="PREDICT_BUTTON">{{ CURRENT_LANGUAGE.PREDICT }}</button>
-              </div>
-              <div class="TEAM">
-                <img src="https://via.placeholder.com/40" alt="Team 2" class="TEAM_LOGO" />
-                <span class="TEAM_NAME">Argentina</span>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Match Card 2 -->
-          <div class="MATCH_CARD">
-            <div class="MATCH_HEADER">
-              <span class="MATCH_TIME">{{ CURRENT_LANGUAGE.TOMORROW }} • 16:30</span>
-              <span class="MATCH_STATUS">{{ CURRENT_LANGUAGE.TIME_LEFT }}: 22h 15min</span>
-            </div>
-            <div class="MATCH_TEAMS">
-              <div class="TEAM">
-                <img src="https://via.placeholder.com/40" alt="Team 1" class="TEAM_LOGO" />
-                <span class="TEAM_NAME">France</span>
-              </div>
-              <div class="MATCH_SCORE">
-                <div class="SCORE_CONTAINER">
-                  <input type="number" class="SCORE_INPUT" min="0" max="99" placeholder="0" />
-                  <span class="SCORE_SEPARATOR">:</span>
-                  <input type="number" class="SCORE_INPUT" min="0" max="99" placeholder="0" />
-                </div>
-                <button class="PREDICT_BUTTON">{{ CURRENT_LANGUAGE.PREDICT }}</button>
-              </div>
-              <div class="TEAM">
-                <img src="https://via.placeholder.com/40" alt="Team 2" class="TEAM_LOGO" />
-                <span class="TEAM_NAME">Germany</span>
-              </div>
-            </div>
-          </div>
+  <div>
+    <page-loader :isVisible="PAGE_LOADING" />
+    <app-header :USER="USER" currentPage="dashboard" />
+
+    <div class="dashboard-container">
+      <div class="dashboard-header">
+        <h2 class="dashboard-title">Dashboard</h2>
+        <div class="actions">
+          <button @click="openJoinGroupModal" class="action-btn join-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="8.5" cy="7" r="4"></circle>
+              <line x1="20" y1="8" x2="20" y2="14"></line>
+              <line x1="23" y1="11" x2="17" y2="11"></line>
+            </svg>
+            Join Group
+          </button>
+          <button @click="openCreateGroupModal" class="action-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Create Group
+          </button>
         </div>
       </div>
-      
-      <div class="DASHBOARD_ACTIONS">
-        <button class="ACTION_BUTTON CREATE_GROUP" @click="showCreateGroupModal">
-          <span class="BUTTON_ICON">+</span>
-          {{ CURRENT_LANGUAGE.CREATE_GROUP }}
-        </button>
-        <button class="ACTION_BUTTON JOIN_GROUP" @click="showJoinGroupModal">
-          <span class="BUTTON_ICON">🔗</span>
-          {{ CURRENT_LANGUAGE.JOIN_GROUP }}
-        </button>
-      </div>
-      
-      <div class="GROUPS_SECTION" v-if="USER_GROUPS.length > 0">
-        <h3>{{ CURRENT_LANGUAGE.YOUR_GROUPS }}</h3>
-        <div class="GROUPS_GRID">
+
+      <!-- Groups Section -->
+      <div class="dashboard-section groups-section">
+        <div class="section-header">
+          <h3 class="section-title">Your Groups</h3>
+        </div>
+        
+        <div v-if="IS_LOADING" class="loading">Loading...</div>
+        
+        <div v-else-if="USER_GROUPS.length === 0" class="empty-state">
+          <p>You don't have any groups yet.</p>
+          <p>Click the "Create Group" button above to get started.</p>
+        </div>
+        
+        <div v-else class="groups-grid">
           <div 
             v-for="group in USER_GROUPS" 
             :key="group.ID" 
-            class="GROUP_CARD"
+            class="group-card"
             @click="navigateToGroup(group.ID)"
           >
-            <div class="GROUP_CARD_HEADER">
-              <h4>{{ group.NAME }}</h4>
-              <span class="GROUP_MEMBERS">{{ group.MEMBER_COUNT }} {{ CURRENT_LANGUAGE.MEMBERS }}</span>
+            <h3>{{ group.NAME }}</h3>
+            <p v-if="group.DESCRIPTION">{{ group.DESCRIPTION }}</p>
+            <div class="group-meta">
+              <span class="role">{{ group.ROLE || 'Member' }}</span>
+              <span class="created">{{ group.CREATED_AT }}</span>
             </div>
-            <p class="GROUP_DESCRIPTION">{{ group.DESCRIPTION }}</p>
           </div>
         </div>
       </div>
-      
-      <!-- Create Group Modal -->
-      <div class="MODAL_OVERLAY" v-if="SHOW_CREATE_MODAL" @click="closeModals">
-        <div class="MODAL_CONTENT" @click.stop>
-          <div class="MODAL_HEADER">
-            <h3>{{ CURRENT_LANGUAGE.CREATE_NEW_GROUP }}</h3>
-            <button class="CLOSE_BUTTON" @click="closeModals">×</button>
+
+      <!-- Debug Section -->
+      <div class="dashboard-section debug-section" v-if="DEBUG_INFO">
+        <div class="section-header">
+          <h2>Debug Information</h2>
+        </div>
+        <div class="debug-content">
+          <pre>{{ DEBUG_INFO }}</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Create Group Modal -->
+    <div class="modal" v-if="SHOW_CREATE_GROUP_MODAL">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Create New Group</h2>
+          <button @click="closeModals" class="close-btn">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="group-name">Group Name</label>
+            <input 
+              type="text" 
+              id="group-name" 
+              v-model="NEW_GROUP.NAME"
+              placeholder="Enter group name"
+            >
           </div>
-          <div class="MODAL_BODY">
-            <div class="FORM_GROUP">
-              <label for="group-name">{{ CURRENT_LANGUAGE.GROUP_NAME }}</label>
-              <input 
-                type="text" 
-                id="group-name" 
-                v-model="NEW_GROUP.NAME" 
-                class="FORM_INPUT"
-                :placeholder="CURRENT_LANGUAGE.GROUP_NAME_PLACEHOLDER"
-              />
-            </div>
-            <div class="FORM_GROUP">
-              <label for="group-description">{{ CURRENT_LANGUAGE.GROUP_DESCRIPTION }}</label>
-              <textarea 
-                id="group-description" 
-                v-model="NEW_GROUP.DESCRIPTION" 
-                class="FORM_INPUT TEXTAREA"
-                :placeholder="CURRENT_LANGUAGE.GROUP_DESCRIPTION_PLACEHOLDER"
-              ></textarea>
-            </div>
+          <div class="form-group">
+            <label for="group-description">Description</label>
+            <textarea 
+              id="group-description" 
+              v-model="NEW_GROUP.DESCRIPTION"
+              placeholder="Enter group description (optional)"
+            ></textarea>
           </div>
-          <div class="MODAL_FOOTER">
+          <div v-if="GROUP_ERROR" class="error-message">
+            {{ GROUP_ERROR }}
+          </div>
+          <div v-if="DEBUG_INFO" class="debug-info">
+            <h4>Debug Information:</h4>
+            <pre>{{ DEBUG_INFO }}</pre>
+          </div>
+          <div class="form-actions">
             <button 
-              class="PRIMARY_BUTTON" 
-              @click="createGroup"
+              @click="createGroup" 
+              class="action-btn"
               :disabled="IS_CREATING_GROUP"
             >
-              {{ IS_CREATING_GROUP ? CURRENT_LANGUAGE.CREATING : CURRENT_LANGUAGE.CREATE }}
+              {{ IS_CREATING_GROUP ? 'Creating...' : 'Create Group' }}
             </button>
-          </div>
-          <div v-if="GROUP_ERROR" class="ERROR_MESSAGE">
-            {{ GROUP_ERROR }}
+            <button @click="closeModals" class="cancel-btn">
+              Cancel
+            </button>
           </div>
         </div>
       </div>
-      
-      <!-- Join Group Modal -->
-      <div class="MODAL_OVERLAY" v-if="SHOW_JOIN_MODAL" @click="closeModals">
-        <div class="MODAL_CONTENT" @click.stop>
-          <div class="MODAL_HEADER">
-            <h3>{{ CURRENT_LANGUAGE.JOIN_EXISTING_GROUP }}</h3>
-            <button class="CLOSE_BUTTON" @click="closeModals">×</button>
+    </div>
+
+    <!-- Join Group Modal -->
+    <div class="modal" v-if="SHOW_JOIN_GROUP_MODAL">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Join Group</h2>
+          <button @click="closeModals" class="close-btn">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="invite-code">Invite Code</label>
+            <input 
+              type="text" 
+              id="invite-code" 
+              v-model="INVITE_CODE"
+              placeholder="Enter invite code"
+            >
           </div>
-          <div class="MODAL_BODY">
-            <div class="FORM_GROUP">
-              <label for="group-code">{{ CURRENT_LANGUAGE.GROUP_CODE }}</label>
-              <input 
-                type="text" 
-                id="group-code" 
-                v-model="JOIN_GROUP_CODE" 
-                class="FORM_INPUT"
-                :placeholder="CURRENT_LANGUAGE.GROUP_CODE_PLACEHOLDER"
-              />
-            </div>
+          <div v-if="JOIN_GROUP_ERROR" class="error-message">
+            {{ JOIN_GROUP_ERROR }}
           </div>
-          <div class="MODAL_FOOTER">
+          <div v-if="DEBUG_INFO" class="debug-info">
+            <h4>Debug Information:</h4>
+            <pre>{{ DEBUG_INFO }}</pre>
+          </div>
+          <div class="form-actions">
             <button 
-              class="PRIMARY_BUTTON" 
-              @click="joinGroup"
+              @click="joinGroup" 
+              class="action-btn"
               :disabled="IS_JOINING_GROUP"
             >
-              {{ IS_JOINING_GROUP ? CURRENT_LANGUAGE.JOINING : CURRENT_LANGUAGE.JOIN }}
+              {{ IS_JOINING_GROUP ? 'Joining...' : 'Join Group' }}
             </button>
-          </div>
-          <div v-if="GROUP_ERROR" class="ERROR_MESSAGE">
-            {{ GROUP_ERROR }}
+            <button @click="closeModals" class="cancel-btn">
+              Cancel
+            </button>
           </div>
         </div>
       </div>
-    </main>
+    </div>
   </div>
 </template>
 
 <script>
-import { testSupabaseConnection } from '../services/supabase'
+import AppHeader from '@/components/AppHeader.vue';
+import PageLoader from '@/components/PageLoader.vue';
 
 export default {
   name: 'DashboardPage',
+  components: {
+    AppHeader,
+    PageLoader
+  },
   data() {
     return {
+      USER: null,
       USER_GROUPS: [],
-      IS_LOADING: false,
-      SHOW_CREATE_MODAL: false,
-      SHOW_JOIN_MODAL: false,
+      IS_LOADING: true,
+      PAGE_LOADING: true,
+      SHOW_CREATE_GROUP_MODAL: false,
+      SHOW_JOIN_GROUP_MODAL: false,
       IS_CREATING_GROUP: false,
       IS_JOINING_GROUP: false,
       GROUP_ERROR: '',
-      JOIN_GROUP_CODE: '',
+      JOIN_GROUP_ERROR: '',
+      DEBUG_INFO: '',
       NEW_GROUP: {
         NAME: '',
         DESCRIPTION: ''
       },
-      CURRENT_LANGUAGE: {
-        WELCOME: 'Welcome to Bimba Bolao',
-        DASHBOARD_MESSAGE: 'Create or join a prediction group to start playing!',
-        SETTINGS: 'Settings',
-        CREATE_GROUP: 'Create Group',
-        JOIN_GROUP: 'Join Group',
-        YOUR_GROUPS: 'Your Groups',
-        MEMBERS: 'members',
-        CREATE_NEW_GROUP: 'Create New Group',
-        JOIN_EXISTING_GROUP: 'Join Existing Group',
-        GROUP_NAME: 'Group Name',
-        GROUP_NAME_PLACEHOLDER: 'Enter a name for your group',
-        GROUP_DESCRIPTION: 'Description',
-        GROUP_DESCRIPTION_PLACEHOLDER: 'Describe your group (optional)',
-        GROUP_CODE: 'Invitation Code',
-        GROUP_CODE_PLACEHOLDER: 'Enter the group invitation code',
-        CREATE: 'Create Group',
-        CREATING: 'Creating...',
-        JOIN: 'Join Group',
-        JOINING: 'Joining...',
-        GROUP_CREATED: 'Group created successfully!',
-        GROUP_JOINED: 'You have joined the group!',
-        ERROR_CREATE_GROUP: 'Failed to create group. Please try again.',
-        ERROR_JOIN_GROUP: 'Failed to join group. Invalid code or you are already a member.',
-        ERROR_LOAD_GROUPS: 'Failed to load your groups. Please refresh the page.',
-        UPCOMING_MATCHES: 'Upcoming Matches',
-        TODAY: 'Today',
-        TOMORROW: 'Tomorrow',
-        TIME_LEFT: 'Time left',
-        PREDICT: 'Predict'
-      }
+      INVITE_CODE: ''
     }
   },
   mounted() {
     this.applyTheme()
+    this.loadUser()
+    setTimeout(() => {
+      this.PAGE_LOADING = false
+    }, 1000)
     this.loadUserGroups()
-    this.testConnection()
   },
   methods: {
-    applyTheme() {
-      const theme = localStorage.getItem('theme')
-      if (theme === 'light') {
-        document.body.classList.add('light-mode')
-        document.body.classList.remove('dark-mode')
-      } else {
-        document.body.classList.remove('light-mode')
-        document.body.classList.add('dark-mode')
+    async loadUser() {
+      try {
+        const { data: { user } } = await this.$supabase.auth.getUser()
+        this.USER = user
+      } catch (error) {
+        console.error('Error loading user:', error)
       }
-    },
-    navigateToProfile() {
-      this.$router.push('/profile')
-    },
-    navigateToGroup(groupId) {
-      this.$router.push(`/group/${groupId}`)
-    },
-    showCreateGroupModal() {
-      this.SHOW_CREATE_MODAL = true
-      this.SHOW_JOIN_MODAL = false
-      this.GROUP_ERROR = ''
-    },
-    showJoinGroupModal() {
-      this.SHOW_JOIN_MODAL = true
-      this.SHOW_CREATE_MODAL = false
-      this.GROUP_ERROR = ''
-    },
-    closeModals() {
-      this.SHOW_CREATE_MODAL = false
-      this.SHOW_JOIN_MODAL = false
-      this.GROUP_ERROR = ''
-      this.NEW_GROUP = {
-        NAME: '',
-        DESCRIPTION: ''
-      }
-      this.JOIN_GROUP_CODE = ''
     },
     async loadUserGroups() {
       this.IS_LOADING = true
@@ -290,61 +215,119 @@ export default {
           return
         }
         
-        // Get user's groups
-        const { data, error } = await this.$supabase
-          .from('GROUP_MEMBERS')
-          .select(`
-            GROUP_ID,
-            GROUPS:GROUP_ID (
-              ID,
-              NAME,
-              DESCRIPTION,
-              CREATED_AT
-            )
-          `)
-          .eq('USER_ID', user.id)
+        console.log('Loading groups for user ID:', user.id)
         
-        if (error) throw error
-        
-        // Format the groups data
-        if (data) {
-          // Get member counts for each group
-          const groupIds = data.map(item => item.GROUP_ID)
+        try {
+          // Get all groups data
+          const { data: groupsData, error: groupsError } = await this.$supabase
+            .from('groups')
+            .select('*')
           
-          const { data: memberCounts, error: countError } = await this.$supabase
-            .from('GROUP_MEMBERS')
-            .select('GROUP_ID, count')
-            .in('GROUP_ID', groupIds)
-            .group('GROUP_ID')
+          if (groupsError) {
+            console.error('Error loading groups:', groupsError)
+            throw groupsError
+          }
           
-          if (countError) throw countError
-          
-          // Map the data to the format we need
-          this.USER_GROUPS = data.map(item => {
-            const group = item.GROUPS
-            const memberCount = memberCounts.find(m => m.GROUP_ID === group.ID)
+          if (groupsData && groupsData.length > 0) {
+            console.log('Found groups:', groupsData.length)
+            console.log('Groups data:', JSON.stringify(groupsData))
             
-            return {
-              ID: group.ID,
-              NAME: group.NAME,
-              DESCRIPTION: group.DESCRIPTION,
-              CREATED_AT: group.CREATED_AT,
-              MEMBER_COUNT: memberCount ? memberCount.count : 1
-            }
-          })
+            // Map groups and properly check for admin status
+            this.USER_GROUPS = groupsData.map(group => {
+              // Check if current user is the admin (exact match)
+              const isAdmin = group.admin_id === user.id
+              console.log(`Group ${group.id}: admin_id=${group.admin_id}, user.id=${user.id}, isAdmin=${isAdmin}`)
+              
+              return {
+                ID: group.id,
+                NAME: group.name,
+                DESCRIPTION: group.description,
+                ROLE: isAdmin ? 'ADMIN' : 'MEMBER',
+                CREATED_AT: new Date(group.created_at).toLocaleDateString()
+              }
+            })
+            
+            console.log('Mapped groups:', this.USER_GROUPS.length)
+          } else {
+            console.log('No groups found')
+            this.USER_GROUPS = []
+          }
+        } catch (error) {
+          console.error('Error processing groups:', error)
+          this.USER_GROUPS = []
+        } finally {
+          this.IS_LOADING = false
         }
       } catch (error) {
-        console.error('Error loading groups:', error)
-      } finally {
+        console.error('Error in loadUserGroups:', error)
         this.IS_LOADING = false
+        this.USER_GROUPS = []
       }
     },
     async testConnection() {
-      const result = await testSupabaseConnection()
-      console.log('Supabase connection test result:', result)
-      if (!result.success) {
-        console.error('Connection test failed:', result.message)
+      try {
+        // Check if we can access the database
+        const { data, error } = await this.$supabase
+          .from('groups')
+          .select('id')
+          .limit(1)
+        
+        if (error) {
+          return {
+            success: false,
+            message: `Connection failed: ${error.message}`,
+            error
+          }
+        }
+        
+        return {
+          success: true,
+          message: 'Connection successful',
+          data
+        }
+      } catch (error) {
+        console.error('Connection test error:', error)
+        return {
+          success: false,
+          message: `Connection test error: ${error.message}`,
+          error
+        }
       }
+    },
+    navigateToGroup(groupId) {
+      console.log('Navigating to group with ID:', groupId)
+      this.$router.push(`/group/${groupId}`)
+    },
+    openCreateGroupModal() {
+      this.SHOW_CREATE_GROUP_MODAL = true
+      this.GROUP_ERROR = ''
+      this.DEBUG_INFO = ''
+    },
+    openJoinGroupModal() {
+      this.SHOW_JOIN_GROUP_MODAL = true
+      this.JOIN_GROUP_ERROR = ''
+      this.DEBUG_INFO = ''
+      this.INVITE_CODE = ''
+    },
+    closeModals() {
+      this.SHOW_CREATE_GROUP_MODAL = false
+      this.SHOW_JOIN_GROUP_MODAL = false
+      this.GROUP_ERROR = ''
+      this.JOIN_GROUP_ERROR = ''
+      this.DEBUG_INFO = ''
+      this.NEW_GROUP = {
+        NAME: '',
+        DESCRIPTION: ''
+      }
+      this.INVITE_CODE = ''
+    },
+    generateInviteCode() {
+      const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+      let code = ''
+      for (let i = 0; i < 8; i++) {
+        code += characters.charAt(Math.floor(Math.random() * characters.length))
+      }
+      return code
     },
     async createGroup() {
       if (!this.NEW_GROUP.NAME.trim()) {
@@ -354,8 +337,12 @@ export default {
       
       this.IS_CREATING_GROUP = true
       this.GROUP_ERROR = ''
+      this.DEBUG_INFO = ''
       
       try {
+        const connectionTest = await this.testConnection()
+        this.DEBUG_INFO = `Connection test: ${JSON.stringify(connectionTest, null, 2)}\n`
+        
         const { data: { user } } = await this.$supabase.auth.getUser()
         
         if (!user) {
@@ -364,159 +351,78 @@ export default {
         }
         
         console.log('Creating group with user ID:', user.id)
+        this.DEBUG_INFO += `User ID: ${user.id}\n`
         
-        // Try a direct approach with a single RPC call
         try {
-          const { data: directResult, error: directError } = await this.$supabase.rpc(
-            'create_group_with_member',
-            {
-              group_name: this.NEW_GROUP.NAME,
-              group_description: this.NEW_GROUP.DESCRIPTION,
-              user_id: user.id
-            }
-          )
-          
-          if (directError) {
-            console.error('Direct group creation failed:', directError)
-          } else if (directResult) {
-            console.log('Group created successfully via RPC:', directResult)
-            this.closeModals()
-            this.loadUserGroups()
-            return
-          }
-        } catch (rpcError) {
-          console.error('RPC error:', rpcError)
-          // Continue with the standard approach if RPC fails
-        }
-        
-        // Standard approach - Create a new group
-        const { data: groupData, error: groupError } = await this.$supabase
-          .from('GROUPS')
-          .insert({
-            NAME: this.NEW_GROUP.NAME,
-            DESCRIPTION: this.NEW_GROUP.DESCRIPTION,
-            CREATED_BY: user.id
-          })
-          .select()
-        
-        if (groupError) {
-          console.error('Error creating group:', groupError)
-          this.GROUP_ERROR = `Failed to create group: ${JSON.stringify(groupError)}`
-          this.IS_CREATING_GROUP = false
-          return
-        }
-        
-        if (!groupData || groupData.length === 0) {
-          // Try an alternative approach - maybe the insert worked but select failed
-          const { data: checkGroups, error: checkError } = await this.$supabase
-            .from('GROUPS')
-            .select('ID')
-            .eq('NAME', this.NEW_GROUP.NAME)
-            .eq('CREATED_BY', user.id)
-            .order('CREATED_AT', { ascending: false })
-            .limit(1)
-          
-          if (checkError || !checkGroups || checkGroups.length === 0) {
-            console.error('No group data returned after insert and check failed:', checkError)
-            this.GROUP_ERROR = 'Failed to create group: No data returned'
-            this.IS_CREATING_GROUP = false
-            return
+          // Try a simpler approach with minimal fields
+          const groupInsert = {
+            name: this.NEW_GROUP.NAME,
+            admin_id: user.id // Set admin_id directly during creation
           }
           
-          console.log('Found group via check query:', checkGroups[0])
-          const newGroupId = checkGroups[0].ID
+          // Only add description if it's not empty
+          if (this.NEW_GROUP.DESCRIPTION && this.NEW_GROUP.DESCRIPTION.trim()) {
+            groupInsert.description = this.NEW_GROUP.DESCRIPTION
+          }
           
-          // Add the creator as a member
-          // eslint-disable-next-line no-unused-vars
-          const { data: memberData, error: memberError } = await this.$supabase
-            .from('GROUP_MEMBERS')
-            .insert({
-              GROUP_ID: newGroupId,
-              USER_ID: user.id,
-              ROLE: 'ADMIN'
-            })
+          this.DEBUG_INFO += `Group Insert Data: ${JSON.stringify(groupInsert, null, 2)}\n`
+          
+          const { data: groupData, error: groupError } = await this.$supabase
+            .from('groups')
+            .insert(groupInsert)
             .select()
           
-          if (memberError) {
-            console.error('Error adding member:', memberError)
-            this.GROUP_ERROR = `Failed to add member: ${JSON.stringify(memberError)}`
-            this.IS_CREATING_GROUP = false
-            return
+          if (groupError) {
+            console.error('Error creating group:', groupError)
+            this.DEBUG_INFO += `Group Error: ${JSON.stringify(groupError, null, 2)}\n`
+            throw new Error(groupError.message || 'Failed to create group')
           }
           
-          // Close modal and reload groups
+          if (!groupData || groupData.length === 0) {
+            throw new Error('No group data returned after creation')
+          }
+          
+          const newGroup = groupData[0]
+          this.DEBUG_INFO += `Group created: ${JSON.stringify(newGroup, null, 2)}\n`
+          
+          // Group creation was successful, close modals and reload groups
           this.closeModals()
           this.loadUserGroups()
           return
+        } catch (standardError) {
+          console.error('Standard approach failed:', standardError)
+          this.DEBUG_INFO += `Standard approach error: ${JSON.stringify(standardError, null, 2)}\n`
+          this.GROUP_ERROR = `Failed to create group: ${standardError.message || 'Database error'}`
         }
-        
-        const newGroupId = groupData[0].ID
-        console.log('Group created with ID:', newGroupId)
-        
-        // Add the creator as a member
-        // eslint-disable-next-line no-unused-vars
-        const { data: memberData, error: memberError } = await this.$supabase
-          .from('GROUP_MEMBERS')
-          .insert({
-            GROUP_ID: newGroupId,
-            USER_ID: user.id,
-            ROLE: 'ADMIN'
-          })
-          .select()
-        
-        if (memberError) {
-          console.error('Error adding member:', memberError)
-          this.GROUP_ERROR = `Failed to add member: ${JSON.stringify(memberError)}`
-          this.IS_CREATING_GROUP = false
-          return
-        }
-        
-        console.log('Added user as admin member')
-        
-        // Generate an invitation code
-        const inviteCode = this.generateInviteCode()
-        console.log('Generated invite code:', inviteCode)
-        
-        // eslint-disable-next-line no-unused-vars
-        const { data: inviteData, error: inviteError } = await this.$supabase
-          .from('GROUP_INVITES')
-          .insert({
-            GROUP_ID: newGroupId,
-            CODE: inviteCode,
-            CREATED_BY: user.id,
-            EXPIRES_AT: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days
-          })
-          .select()
-        
-        if (inviteError) {
-          console.error('Error creating invite:', inviteError)
-          this.GROUP_ERROR = `Failed to create invite: ${JSON.stringify(inviteError)}`
-          // Don't return here, we can still proceed without an invite code
-        } else {
-          console.log('Created invite code successfully')
-        }
-        
-        // Close modal and reload groups
-        this.closeModals()
-        this.loadUserGroups()
-        
       } catch (error) {
         console.error('Error creating group:', error)
-        this.GROUP_ERROR = `Error: ${error ? JSON.stringify(error) : this.CURRENT_LANGUAGE.ERROR_CREATE_GROUP}`
+        
+        if (!error || Object.keys(error).length === 0) {
+          this.GROUP_ERROR = 'Failed to create group: Database connection error or insufficient permissions'
+          this.DEBUG_INFO += `Empty error object. This usually indicates a connection issue or permission problem.\n`
+          this.DEBUG_INFO += `Please check your Supabase connection and RLS policies.\n`
+        } else {
+          this.GROUP_ERROR = `Failed to create group: ${error.message || 'Unknown error'}`
+          this.DEBUG_INFO += `Catch Error: ${JSON.stringify(error, null, 2)}`
+        }
       } finally {
         this.IS_CREATING_GROUP = false
       }
     },
     async joinGroup() {
-      if (!this.JOIN_GROUP_CODE.trim()) {
-        this.GROUP_ERROR = 'Invitation code is required'
+      if (!this.INVITE_CODE.trim()) {
+        this.JOIN_GROUP_ERROR = 'Invite code is required'
         return
       }
       
       this.IS_JOINING_GROUP = true
-      this.GROUP_ERROR = ''
+      this.JOIN_GROUP_ERROR = ''
+      this.DEBUG_INFO = ''
       
       try {
+        const connectionTest = await this.testConnection()
+        this.DEBUG_INFO = `Connection test: ${JSON.stringify(connectionTest, null, 2)}\n`
+        
         const { data: { user } } = await this.$supabase.auth.getUser()
         
         if (!user) {
@@ -524,598 +430,410 @@ export default {
           return
         }
         
-        // Find the group by invitation code
-        const { data: inviteData, error: inviteError } = await this.$supabase
-          .from('GROUP_INVITES')
-          .select('GROUP_ID, EXPIRES_AT')
-          .eq('CODE', this.JOIN_GROUP_CODE)
-          .single()
+        console.log('Joining group with user ID:', user.id)
+        this.DEBUG_INFO += `User ID: ${user.id}\n`
         
-        if (inviteError || !inviteData) {
-          this.GROUP_ERROR = this.CURRENT_LANGUAGE.ERROR_JOIN_GROUP
+        try {
+          // Try to find the group by invite code
+          const { data: groupData, error: groupError } = await this.$supabase
+            .from('groups')
+            .select('id, name, description, admin_id')
+            .eq('invite_code', this.INVITE_CODE)
+          
+          if (groupError) {
+            console.error('Error finding group:', groupError)
+            this.DEBUG_INFO += `Group Error: ${JSON.stringify(groupError, null, 2)}\n`
+            throw new Error(groupError.message || 'Failed to find group')
+          }
+          
+          if (!groupData || groupData.length === 0) {
+            throw new Error('No group found with the provided invite code')
+          }
+          
+          const group = groupData[0]
+          this.DEBUG_INFO += `Group found: ${JSON.stringify(group, null, 2)}\n`
+          
+          // Check if the user is already a member of the group
+          const { data: membershipData, error: membershipError } = await this.$supabase
+            .from('group_members')
+            .select('id')
+            .eq('group_id', group.id)
+            .eq('user_id', user.id)
+          
+          if (membershipError) {
+            console.error('Error checking membership:', membershipError)
+            this.DEBUG_INFO += `Membership Error: ${JSON.stringify(membershipError, null, 2)}\n`
+            throw new Error(membershipError.message || 'Failed to check membership')
+          }
+          
+          if (membershipData && membershipData.length > 0) {
+            throw new Error('You are already a member of this group')
+          }
+          
+          // Add the user to the group
+          const { data: newMembership, error: newMembershipError } = await this.$supabase
+            .from('group_members')
+            .insert({
+              group_id: group.id,
+              user_id: user.id
+            })
+          
+          if (newMembershipError) {
+            console.error('Error adding membership:', newMembershipError)
+            this.DEBUG_INFO += `New Membership Error: ${JSON.stringify(newMembershipError, null, 2)}\n`
+            throw new Error(newMembershipError.message || 'Failed to add membership')
+          }
+          
+          this.DEBUG_INFO += `Membership added: ${JSON.stringify(newMembership, null, 2)}\n`
+          
+          // Group join was successful, close modals and reload groups
+          this.closeModals()
+          this.loadUserGroups()
           return
+        } catch (standardError) {
+          console.error('Standard approach failed:', standardError)
+          this.DEBUG_INFO += `Standard approach error: ${JSON.stringify(standardError, null, 2)}\n`
+          this.JOIN_GROUP_ERROR = `Failed to join group: ${standardError.message || 'Database error'}`
         }
-        
-        // Check if invitation is expired
-        if (new Date(inviteData.EXPIRES_AT) < new Date()) {
-          this.GROUP_ERROR = 'This invitation code has expired'
-          return
-        }
-        
-        // Check if user is already a member
-        const { data: existingMember } = await this.$supabase
-          .from('GROUP_MEMBERS')
-          .select('ID')
-          .eq('GROUP_ID', inviteData.GROUP_ID)
-          .eq('USER_ID', user.id)
-          .single()
-        
-        if (existingMember) {
-          this.GROUP_ERROR = 'You are already a member of this group'
-          return
-        }
-        
-        // Add user as a member
-        const { error: joinError } = await this.$supabase
-          .from('GROUP_MEMBERS')
-          .insert({
-            GROUP_ID: inviteData.GROUP_ID,
-            USER_ID: user.id,
-            ROLE: 'MEMBER'
-          })
-        
-        if (joinError) throw joinError
-        
-        // Close modal and reload groups
-        this.closeModals()
-        this.loadUserGroups()
-        
       } catch (error) {
         console.error('Error joining group:', error)
-        this.GROUP_ERROR = this.CURRENT_LANGUAGE.ERROR_JOIN_GROUP
+        
+        if (!error || Object.keys(error).length === 0) {
+          this.JOIN_GROUP_ERROR = 'Failed to join group: Database connection error or insufficient permissions'
+          this.DEBUG_INFO += `Empty error object. This usually indicates a connection issue or permission problem.\n`
+          this.DEBUG_INFO += `Please check your Supabase connection and RLS policies.\n`
+        } else {
+          this.JOIN_GROUP_ERROR = `Failed to join group: ${error.message || 'Unknown error'}`
+          this.DEBUG_INFO += `Catch Error: ${JSON.stringify(error, null, 2)}`
+        }
       } finally {
         this.IS_JOINING_GROUP = false
       }
     },
-    generateInviteCode() {
-      const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
-      let code = ''
-      // Generate a longer code (10 characters) for better uniqueness
-      for (let i = 0; i < 10; i++) {
-        code += characters.charAt(Math.floor(Math.random() * characters.length))
+    async logout() {
+      try {
+        await this.$supabase.auth.signOut()
+        this.$router.push('/login')
+      } catch (error) {
+        console.error('Error signing out:', error)
       }
-      // Add timestamp to ensure uniqueness
-      return code + '-' + Date.now().toString().substring(7)
-    }
+    },
+    applyTheme() {
+      const theme = localStorage.getItem('theme')
+      console.log('Applying theme from localStorage:', theme)
+      if (theme === 'light') {
+        document.body.classList.add('light-mode')
+      } else {
+        document.body.classList.remove('light-mode')
+      }
+    },
   }
 }
 </script>
 
 <style scoped>
-.DASHBOARD_CONTAINER {
-  min-height: 100vh;
-  background-color: var(--bg-primary);
-  background-image: var(--pattern-overlay);
+.dashboard-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  color: var(--text-primary);
 }
 
-.DASHBOARD_HEADER {
-  background: rgba(23, 23, 23, 0.8);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  color: white;
-  padding: 16px 24px;
+.dashboard-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  margin-bottom: 24px;
 }
 
-.HEADER_LOGO {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.LOGO_IMAGE {
-  width: 40px;
-  height: 40px;
-  object-fit: contain;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
-}
-
-.DASHBOARD_HEADER h1 {
-  font-size: 24px;
+.dashboard-title {
+  font-size: 28px;
   font-weight: 700;
+  color: var(--text-primary);
   margin: 0;
-  letter-spacing: 0.5px;
-  background: var(--title-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
 }
 
-.HEADER_ACTIONS {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.PROFILE_BUTTON {
-  background-color: #3b82f6;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 10px 18px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
-  box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3);
-}
-
-.PROFILE_BUTTON:hover {
-  background-color: #2563eb;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 10px rgba(59, 130, 246, 0.4);
-}
-
-.DASHBOARD_CONTENT {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 40px 24px;
-}
-
-.DASHBOARD_WELCOME {
-  background-color: var(--card-bg);
-  border-radius: 16px;
-  box-shadow: var(--card-shadow);
-  padding: 30px;
-  margin-bottom: 32px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  animation: card-appear 0.5s ease-out forwards;
-}
-
-.DASHBOARD_WELCOME h2 {
-  font-size: 24px;
-  margin-bottom: 16px;
-  background: var(--title-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  display: inline-block;
-  font-weight: 700;
-}
-
-.DASHBOARD_WELCOME p {
-  font-size: 16px;
-  color: var(--text-secondary);
-  line-height: 1.6;
-}
-
-.DASHBOARD_ACTIONS {
-  display: flex;
-  gap: 16px;
+.dashboard-section {
   margin-bottom: 40px;
 }
 
-.ACTION_BUTTON {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  color: white;
-  border: none;
-  border-radius: 12px;
-  padding: 20px;
-  font-size: 16px;
+.section-header {
+  margin-bottom: 16px;
+}
+
+.section-title {
+  font-size: 20px;
   font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
-  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
-}
-
-.ACTION_BUTTON:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
-}
-
-.CREATE_GROUP {
-  background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
-}
-
-.JOIN_GROUP {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-}
-
-.BUTTON_ICON {
-  font-size: 20px;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: rgba(255, 255, 255, 0.2);
-  border-radius: 50%;
-}
-
-.GROUPS_SECTION {
-  margin-top: 40px;
-}
-
-.GROUPS_SECTION h3 {
-  font-size: 20px;
-  margin-bottom: 24px;
   color: var(--text-primary);
-  font-weight: 600;
+  margin: 0;
 }
 
-.GROUPS_GRID {
+.groups-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 24px;
+  margin-top: 20px;
 }
 
-.GROUP_CARD {
+.group-card {
   background-color: var(--card-bg);
-  border-radius: 12px;
-  box-shadow: var(--card-shadow);
-  padding: 24px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  transition: all 0.3s;
+  border-radius: 16px;
+  padding: 20px;
   cursor: pointer;
-}
-
-.GROUP_CARD:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
-  border-color: var(--accent-primary);
-}
-
-.GROUP_CARD_HEADER {
+  transition: all 0.2s ease;
+  border: 1px solid var(--border-color);
+  height: 100%;
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 12px;
-}
-
-.GROUP_CARD h4 {
-  font-size: 18px;
-  font-weight: 600;
-  margin: 0;
-  color: var(--text-primary);
-}
-
-.GROUP_MEMBERS {
-  font-size: 12px;
-  color: var(--text-secondary);
-  background-color: rgba(255, 255, 255, 0.1);
-  padding: 4px 8px;
-  border-radius: 12px;
-}
-
-.GROUP_DESCRIPTION {
-  font-size: 14px;
-  color: var(--text-secondary);
-  line-height: 1.5;
-  margin: 0;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  -webkit-box-orient: vertical;
+  flex-direction: column;
+  box-shadow: var(--card-shadow);
+  position: relative;
   overflow: hidden;
 }
 
-/* Modal Styles */
-.MODAL_OVERLAY {
-  position: fixed;
+.group-card::after {
+  content: '';
+  position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.7);
+  height: 4px;
+  background: var(--accent-primary);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.group-card:hover {
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+  transform: translateY(-4px);
+}
+
+.group-card:hover::after {
+  opacity: 1;
+}
+
+.group-card h3 {
+  margin: 0 0 10px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.group-card p {
+  margin: 0 0 15px 0;
+  font-size: 14px;
+  color: var(--text-secondary);
+  flex-grow: 1;
+}
+
+.group-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: auto;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-secondary);
+}
+
+.empty-state p {
+  margin-bottom: 20px;
+  font-size: 16px;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+}
+
+.action-btn {
   display: flex;
   align-items: center;
+  gap: 8px;
+  background-color: var(--accent-primary);
+  color: white;
+  border: none;
+  border-radius: 50px;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.action-btn:hover {
+  background-color: var(--accent-secondary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.action-btn .icon {
+  stroke-width: 2.5;
+}
+
+.join-btn {
+  background-color: var(--accent-secondary);
+}
+
+.join-btn:hover {
+  background-color: var(--accent-primary);
+}
+
+.loading {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-secondary);
+  font-size: 16px;
+}
+
+/* Modal */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
   justify-content: center;
+  align-items: center;
   z-index: 1000;
   backdrop-filter: blur(4px);
 }
 
-.MODAL_CONTENT {
+.modal-content {
   background-color: var(--card-bg);
-  border-radius: 16px;
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+  border-radius: 12px;
   width: 90%;
   max-width: 500px;
   max-height: 90vh;
   overflow-y: auto;
-  animation: modal-appear 0.3s ease-out forwards;
+  box-shadow: var(--card-shadow);
+  border: 1px solid var(--border-color);
 }
 
-@keyframes modal-appear {
-  0% {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.MODAL_HEADER {
-  padding: 20px 24px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+.modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 15px 20px;
+  border-bottom: 1px solid var(--border-color);
 }
 
-.MODAL_HEADER h3 {
-  font-size: 20px;
+.modal-header h2 {
   margin: 0;
+  font-size: 20px;
   color: var(--text-primary);
-  font-weight: 600;
 }
 
-.CLOSE_BUTTON {
-  background: transparent;
+.close-btn {
+  background: none;
   border: none;
-  color: var(--text-secondary);
   font-size: 24px;
   cursor: pointer;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  transition: all 0.2s;
+  color: var(--text-secondary);
+  transition: color 0.2s;
 }
 
-.CLOSE_BUTTON:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+.close-btn:hover {
   color: var(--text-primary);
 }
 
-.MODAL_BODY {
-  padding: 24px;
+.modal-body {
+  padding: 20px;
 }
 
-.MODAL_FOOTER {
-  padding: 16px 24px 24px;
-  display: flex;
-  justify-content: flex-end;
-}
-
-.FORM_GROUP {
+.form-group {
   margin-bottom: 20px;
 }
 
-.FORM_GROUP label {
+.form-group label {
   display: block;
-  font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 8px;
-  color: var(--text-secondary);
+  margin-bottom: 5px;
+  font-weight: 500;
+  color: var(--text-primary);
 }
 
-.FORM_INPUT {
+.form-group input,
+.form-group textarea {
   width: 100%;
-  padding: 12px 16px;
-  font-size: 16px;
+  padding: 10px;
   border: 1px solid var(--input-border);
-  border-radius: 8px;
+  border-radius: 4px;
   background-color: var(--input-bg);
   color: var(--text-primary);
-  transition: all 0.3s;
+  transition: border-color 0.2s;
 }
 
-.FORM_INPUT:focus {
-  outline: none;
+.form-group input:focus,
+.form-group textarea:focus {
   border-color: var(--accent-primary);
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+  outline: none;
 }
 
-.TEXTAREA {
+.form-group textarea {
   min-height: 100px;
   resize: vertical;
 }
 
-.PRIMARY_BUTTON {
-  background-color: var(--accent-primary);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 12px 24px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.PRIMARY_BUTTON:hover:not(:disabled) {
-  background-color: var(--button-hover-bg);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(59, 130, 246, 0.3);
-}
-
-.PRIMARY_BUTTON:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-}
-
-.ERROR_MESSAGE {
-  margin: 0 24px 24px;
-  padding: 12px 16px;
-  background-color: rgba(239, 68, 68, 0.1);
-  color: var(--error-color);
-  border-radius: 8px;
-  font-size: 14px;
-}
-
-@keyframes card-appear {
-  0% {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Match Templates Styles */
-.MATCHES_SECTION {
-  margin-bottom: 40px;
-}
-
-.MATCHES_SECTION h3 {
-  font-size: 20px;
-  margin-bottom: 24px;
-  color: var(--text-primary);
-  font-weight: 600;
-}
-
-.MATCHES_GRID {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-  gap: 24px;
-}
-
-.MATCH_CARD {
-  background-color: var(--card-bg);
-  border-radius: 12px;
-  box-shadow: var(--card-shadow);
-  padding: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  transition: all 0.3s;
-}
-
-.MATCH_CARD:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
-  border-color: var(--accent-primary);
-}
-
-.MATCH_HEADER {
+.form-actions {
   display: flex;
-  justify-content: space-between;
-  margin-bottom: 16px;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
 }
 
-.MATCH_TIME {
-  font-size: 14px;
-  font-weight: 600;
+.cancel-btn {
+  background-color: transparent;
+  border: 1px solid var(--input-border);
+  color: var(--text-primary);
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cancel-btn:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.error-message {
+  color: var(--error-color);
+  margin-bottom: 15px;
+  padding: 8px;
+  background-color: rgba(239, 68, 68, 0.1);
+  border-radius: 4px;
+}
+
+.debug-info {
+  margin-top: 20px;
+  padding: 10px;
+  background-color: var(--bg-secondary);
+  border-radius: 4px;
+  font-size: 12px;
+  border: 1px solid var(--border-color);
+}
+
+.debug-info pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 200px;
+  overflow-y: auto;
   color: var(--accent-primary);
 }
 
-.MATCH_STATUS {
-  font-size: 14px;
-  color: var(--text-secondary);
-  background-color: rgba(255, 255, 255, 0.1);
-  padding: 4px 10px;
-  border-radius: 12px;
-}
-
-.MATCH_TEAMS {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.TEAM {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  width: 30%;
-}
-
-.TEAM_LOGO {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid rgba(255, 255, 255, 0.1);
-}
-
-.TEAM_NAME {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-primary);
-  text-align: center;
-}
-
-.MATCH_SCORE {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  width: 40%;
-}
-
-.SCORE_CONTAINER {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.SCORE_INPUT {
-  width: 50px;
-  height: 50px;
-  text-align: center;
-  font-size: 20px;
-  font-weight: 700;
-  border: 2px solid var(--input-border);
-  border-radius: 8px;
-  background-color: var(--input-bg);
-  color: var(--text-primary);
-}
-
-.SCORE_INPUT:focus {
-  outline: none;
-  border-color: var(--accent-primary);
-}
-
-.SCORE_SEPARATOR {
-  font-size: 24px;
-  font-weight: 700;
-  color: var(--text-secondary);
-}
-
-.PREDICT_BUTTON {
-  background-color: var(--accent-primary);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 8px 16px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
-  width: 100%;
-  max-width: 120px;
-}
-
-.PREDICT_BUTTON:hover {
-  background-color: var(--button-hover-bg);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
-}
-
+/* Responsive adjustments */
 @media (max-width: 768px) {
-  .MATCHES_GRID {
+  .dashboard-content {
     grid-template-columns: 1fr;
   }
   
-  .DASHBOARD_ACTIONS {
-    flex-direction: column;
-  }
-  
-  .GROUPS_GRID {
-    grid-template-columns: 1fr;
+  .groups-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   }
 }
 </style>
